@@ -46,19 +46,19 @@ const BootcampSchema = new mongoose.Schema({
         coordinates: {
             type: [Number],
             required: false,
-            index:'2dsphere'
+            index: '2dsphere'
         },
-        formattedAddress:String,
-        street:String,
-        city:String,
-        state:String,
-        zipcode:String,
-        country:String
+        formattedAddress: String,
+        street: String,
+        city: String,
+        state: String,
+        zipcode: String,
+        country: String
     },
     careers: {
-        type:[String],
-        required:true,
-        enum:[
+        type: [String],
+        required: true,
+        enum: [
             'Web Development',
             'Mobile Development',
             'UI/UX',
@@ -67,55 +67,59 @@ const BootcampSchema = new mongoose.Schema({
             'Other'
         ]
     },
-    averageRating:{
-        type:Number,
-        min:[1,'Rating must be at least 1'],
-        max:[10,'Rating must can not be more than 10'],
+    averageRating: {
+        type: Number,
+        min: [1, 'Rating must be at least 1'],
+        max: [10, 'Rating must can not be more than 10'],
     },
-    averageCost:Number,
-    photo:{
-        type:String,
-        default:'no-photo.jpg'
+    averageCost: Number,
+    photo: {
+        type: String,
+        default: 'no-photo.jpg'
     },
-    housing:{
-        type:Boolean,
-        default:false
+    housing: {
+        type: Boolean,
+        default: false
     },
-    jobAssistance:{
-        type:Boolean,
-        default:false
+    jobAssistance: {
+        type: Boolean,
+        default: false
     },
-    jobGuarantee:{
-        type:Boolean,
-        default:false
+    jobGuarantee: {
+        type: Boolean,
+        default: false
     },
-    acceptGi:{
-        type:Boolean,
-        default:false
+    acceptGi: {
+        type: Boolean,
+        default: false
     },
-    createdAt:{
-        type:Date,
-        default:Date.now
+    createdAt: {
+        type: Date,
+        default: Date.now
     }
-})
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+}
+)
 
 
 
 // Create bootcamp slug from the name
 
-BootcampSchema.pre('save',function(next){
-   this.slug = slugify(this.name, { lower:true });
+BootcampSchema.pre('save', function (next) {
+    this.slug = slugify(this.name, { lower: true });
     next()
 })
 
 //Geocode & Create location field
 
-BootcampSchema.pre('save', async function(next){
+BootcampSchema.pre('save', async function (next) {
     const loc = await geocoder.geocode(this.address);
     this.location = {
-        type:'Point',
-        coordinates:[loc[0].longitude,loc[0].latitude],
-        formattedAddress:loc[0].formattedAddress,
+        type: 'Point',
+        coordinates: [loc[0].longitude, loc[0].latitude],
+        formattedAddress: loc[0].formattedAddress,
         street: loc[0].streetName,
         city: loc[0].city,
         state: loc[0].stateCode,
@@ -123,6 +127,15 @@ BootcampSchema.pre('save', async function(next){
         country: loc[0].countryCode
     }
     next()
+});
+
+//Reverse populate with virtuals
+
+BootcampSchema.virtual('courses', {
+    ref: 'Course',
+    localField: '_id',
+    foreignField: 'bootcamp',
+    justOne: false
 })
 module.exports = mongoose.model('Bootcamp', BootcampSchema)
 
