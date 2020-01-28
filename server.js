@@ -1,9 +1,11 @@
+const path = require('path')
 const express = require('express')
 const dotenv = require('dotenv')
 const morgan = require('morgan')
 const connectDB = require('./config/db')
 const colors = require('colors')
 const errorHandler = require('./middleware/error')
+const fileUpload = require('express-fileupload')
 // load env vars
 
 dotenv.config({path:'./config/config.env'})
@@ -29,7 +31,14 @@ if(process.env.NODE_ENV === 'development'){
     app.use(morgan('dev'))
 }
 
+//File uploading
 
+app.use(fileUpload());
+
+
+//Set static folder
+
+app.use(express.static(path.join(__dirname, 'public')))
 
 //Mount routers
 
